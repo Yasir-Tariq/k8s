@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.sqlservicename }}
+  labels:
+    app: {{ .Values.sqlservicename }}
+spec:
+  type: NodePort
+    # type: ClusterIP
+  ports:
+    - port: 3306
+  selector:
+    app: {{ .Values.sqlselector.app }}
+    tier: {{ .Values.sqlselector.app }}
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    configmap.reloader.stakater.com/reload: {{ .Values.configmapname }}
+  name: {{ .Values.sqlselector.app }}
+  labels:
+    app: {{ .Values.sqlselector.app }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.sqlselector.app }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.sqlselector.app }}
+        tier: {{ .Values.sqlselector.app }}
+    spec:
+      containers:
+      - image: mysql:5.7
+        name: {{ .Values.sqlselector.app }}
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: {{ .Values.sqlselector.pass }}
+        - name: MYSQL_DATABASE
+          value: {{ .Values.sqlselector.dbname }}
+        - name: MYSQL_USER
+          value: {{ .Values.sqlselector.user }}
+        ports:
+        - containerPort: 3306
+          name: {{ .Values.sqlselector.app }}
+        volumeMounts:
+        - name: {{ .Values.sqlselector.volumename }}
+          mountPath: {{ .Values.sqlselector.mountpath }}
+      volumes:
+      - name: {{ .Values.sqlselector.volumename }}
+        configMap:
+          name: {{ .Values.configmapname }}

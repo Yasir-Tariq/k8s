@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.phpservicename }}
+  labels:
+    app: {{ .Values.phpservicename }}
+spec:
+  ports:
+    - port: 80
+  selector:
+    app: {{ .Values.phpservicename }}
+    tier: {{ .Values.phpselector.tier }}
+  type: {{ .Values.phpselector.servicetype }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.phpselector.deploymentname }}
+  labels:
+    app: {{ .Values.phpservicename }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.phpservicename }}
+      tier: {{ .Values.phpselector.tier }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.phpservicename }}
+        tier: {{ .Values.phpselector.tier }}
+    spec:
+      containers:
+      - image: {{ .Values.phpselector.containerimage }}
+        name: {{ .Values.phpselector.containername }}
+        imagePullPolicy: {{ .Values.phpselector.image.pullPolicy }}
+        ports:
+        - containerPort: 80
+          name: {{ .Values.phpservicename }}
+      initContainers:
+      - name: {{ .Values.phpselector.initcontainername }}
+        image: {{ .Values.phpselector.initimage }}
+        command: ['sh', '-c', 'until nslookup mysqlnew-service; do echo waiting for mysqlnew-service; sleep 1; done;'] #to check if mysql service is ready or not

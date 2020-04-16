@@ -1,0 +1,28 @@
+#for sql service and deployment
+configmapname: mysql-initdb-config
+sqlservicename: mysqlnew-service
+sqlselector:
+  app: mysql
+  dbname: test
+  user: root
+  pass: test
+  volumename: mysql-volume
+  mountpath: /docker-entrypoint-initdb.d
+
+#for php service and deployment
+phpservicename: php
+phpselector:
+  servicetype: NodePort
+  deploymentname: webserver
+  tier: frontend
+  containerimage: webimage:latest
+  containername: php-container
+  image:
+    pullPolicy: Never
+  initcontainername: init-mysql
+  initimage: busybox
+
+
+
+
+
